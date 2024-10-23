@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to waitlist collection for authenticated users
+    match /waitlist/{userId} {
+      allow create: if request.auth != null && request.auth.token.email_verified == true;
+      allow read: if request.auth != null && (
+        request.auth.uid == userId || 
+        request.auth.token.email_verified == true
+      );
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // Prevent deletions
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
